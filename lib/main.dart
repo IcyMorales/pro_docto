@@ -2,9 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:expandable/expandable.dart';
 import 'package:provider/provider.dart';
 import 'package:camera/camera.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_core/firebase_core.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
   final cameras = await availableCameras();
   final firstCamera = cameras.first;
 
@@ -53,10 +56,9 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  final ExpandableController _expandableController =
-      ExpandableController(initialExpanded: false);
   late CameraController _cameraController;
   late Future<void> _initializeCameraController;
+  String? _selectedProduce;
 
   @override
   void initState() {
@@ -66,19 +68,11 @@ class _HomePageState extends State<HomePage> {
       ResolutionPreset.high,
     );
     _initializeCameraController = _cameraController.initialize();
-
-    _expandableController.addListener(() {
-      final appState = Provider.of<AppState>(context, listen: false);
-      if (_expandableController.expanded != appState.maxDetails) {
-        appState.toggleDetails();
-      }
-    });
   }
 
   @override
   void dispose() {
     _cameraController.dispose();
-    _expandableController.dispose();
     super.dispose();
   }
 
@@ -113,39 +107,45 @@ class _HomePageState extends State<HomePage> {
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: DropdownButtonHideUnderline(
-                  child: DropdownButton<String>(
-                    isExpanded: true,
-                    icon: const Icon(
-                      Icons.keyboard_arrow_down_rounded,
-                      color: Colors.white,
-                      size: 25,
-                    ),
-                    dropdownColor: Color(0xFFD07712),
-                    borderRadius: BorderRadius.circular(8),
-                    items: [
-                      DropdownMenuItem(
-                        value: 'Option 1',
-                        child: Text('Option 1',
-                            style: TextStyle(color: Colors.white)),
-                      ),
-                      DropdownMenuItem(
-                        value: 'Option 2',
-                        child: Text('Option 2',
-                            style: TextStyle(color: Colors.white)),
-                      ),
-                      DropdownMenuItem(
-                        value: 'Option 3',
-                        child: Text('Option 3',
-                            style: TextStyle(color: Colors.white)),
-                      ),
-                    ],
-                    onChanged: (value) {
-                      print('Selected: $value');
+                  child: StreamBuilder<QuerySnapshot>(
+                    stream: FirebaseFirestore.instance
+                        .collection('Produce')
+                        .snapshots(),
+                    builder: (context, snapshot) {
+                      if (!snapshot.hasData) {
+                        return Center(child: CircularProgressIndicator());
+                      }
+                      var items = snapshot.data!.docs
+                          .map((doc) => doc['Name'] as String)
+                          .toList();
+                      return DropdownButton<String>(
+                        isExpanded: true,
+                        icon: const Icon(
+                          Icons.keyboard_arrow_down_rounded,
+                          color: Colors.white,
+                          size: 25,
+                        ),
+                        dropdownColor: Color(0xFFD07712),
+                        borderRadius: BorderRadius.circular(8),
+                        items: items.map((String value) {
+                          return DropdownMenuItem<String>(
+                            value: value,
+                            child: Text(value,
+                                style: TextStyle(color: Colors.white)),
+                          );
+                        }).toList(),
+                        onChanged: (value) {
+                          setState(() {
+                            _selectedProduce = value;
+                          });
+                        },
+                        value: _selectedProduce,
+                        hint: Text(
+                          'Select...',
+                          style: TextStyle(color: Colors.white),
+                        ),
+                      );
                     },
-                    hint: Text(
-                      'Select...',
-                      style: TextStyle(color: Colors.white),
-                    ),
                   ),
                 ),
               ),
@@ -173,21 +173,34 @@ class _HomePageState extends State<HomePage> {
                           ),
                         ),
                         child: ExpandableNotifier(
-                          controller: _expandableController,
+                          controller: ExpandableController(
+                              initialExpanded: appState.maxDetails),
                           child: ExpandablePanel(
                             header: GestureDetector(
                               onTap: () {
-                                _expandableController.toggle();
+                                appState.toggleDetails();
                               },
-                              child: const Padding(
+                              child: Padding(
                                 padding: EdgeInsets.all(8.0),
-                                child: Text(
-                                  'Header',
-                                  style: TextStyle(
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.black,
-                                  ),
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      'Header',
+                                      style: TextStyle(
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.black,
+                                      ),
+                                    ),
+                                    Icon(
+                                      appState.maxDetails
+                                          ? Icons.arrow_drop_down
+                                          : Icons.arrow_drop_up,
+                                      color: Colors.black,
+                                    ),
+                                  ],
                                 ),
                               ),
                             ),
@@ -207,9 +220,7 @@ class _HomePageState extends State<HomePage> {
                             ),
                             theme: const ExpandableThemeData(
                               tapHeaderToExpand: false,
-                              hasIcon: true,
-                              expandIcon: Icons.arrow_drop_up,
-                              collapseIcon: Icons.arrow_drop_down,
+                              hasIcon: false,
                             ),
                           ),
                         ),

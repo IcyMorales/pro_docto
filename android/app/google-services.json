@@ -7,9 +7,9 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:249656193168:android:8bb2ad550abd16089f6815",
+        "mobilesdk_app_id": "1:249656193168:android:43080bcae44fc8069f6815",
         "android_client_info": {
-          "package_name": "com.sp.pro_docto"
+          "package_name": "com.example.pro_docto"
         }
       },
       "oauth_client": [],

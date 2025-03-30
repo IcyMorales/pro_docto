@@ -41,6 +41,8 @@ dependencies:
   provider: ^6.1.2
   expandable: ^5.0.1
   google_fonts: ^6.2.1
+  cloud_firestore: ^5.6.5
+  firebase_core: ^3.12.1
 
 
 dev_dependencies:
