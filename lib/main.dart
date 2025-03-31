@@ -52,6 +52,7 @@ class HomePage extends StatefulWidget {
   const HomePage({super.key, required this.camera});
 
   @override
+  // ignore: library_private_types_in_public_api
   _HomePageState createState() => _HomePageState();
 }
 
@@ -103,7 +104,7 @@ class _HomePageState extends State<HomePage> {
                 width: MediaQuery.of(context).size.width * 0.25,
                 height: MediaQuery.of(context).size.height * 0.03,
                 decoration: BoxDecoration(
-                  color: Color(0xFFD07712),
+                  color: const Color(0xFFD07712),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: DropdownButtonHideUnderline(
@@ -113,7 +114,12 @@ class _HomePageState extends State<HomePage> {
                         .snapshots(),
                     builder: (context, snapshot) {
                       if (!snapshot.hasData) {
-                        return Center(child: CircularProgressIndicator());
+                        return const Center(child: CircularProgressIndicator());
+                      }
+                      // Print documents to the console
+                      for (var doc in snapshot.data!.docs) {
+                        // ignore: avoid_print
+                        print('Document ID: ${doc.id}, Data: ${doc.data()}');
                       }
                       var items = snapshot.data!.docs
                           .map((doc) => doc['Name'] as String)
@@ -125,13 +131,13 @@ class _HomePageState extends State<HomePage> {
                           color: Colors.white,
                           size: 25,
                         ),
-                        dropdownColor: Color(0xFFD07712),
+                        dropdownColor: const Color(0xFFD07712),
                         borderRadius: BorderRadius.circular(8),
                         items: items.map((String value) {
                           return DropdownMenuItem<String>(
                             value: value,
                             child: Text(value,
-                                style: TextStyle(color: Colors.white)),
+                                style: const TextStyle(color: Colors.white)),
                           );
                         }).toList(),
                         onChanged: (value) {
@@ -140,7 +146,7 @@ class _HomePageState extends State<HomePage> {
                           });
                         },
                         value: _selectedProduce,
-                        hint: Text(
+                        hint: const Text(
                           'Select...',
                           style: TextStyle(color: Colors.white),
                         ),
@@ -181,12 +187,12 @@ class _HomePageState extends State<HomePage> {
                                 appState.toggleDetails();
                               },
                               child: Padding(
-                                padding: EdgeInsets.all(8.0),
+                                padding: const EdgeInsets.all(8.0),
                                 child: Row(
                                   mainAxisAlignment:
                                       MainAxisAlignment.spaceBetween,
                                   children: [
-                                    Text(
+                                    const Text(
                                       'Header',
                                       style: TextStyle(
                                         fontSize: 20,
@@ -237,6 +243,7 @@ class _HomePageState extends State<HomePage> {
                       icon: const Icon(Icons.camera,
                           size: 40, color: Colors.white),
                       onPressed: () {
+                        // ignore: avoid_print
                         print('CameraButton pressed ...');
                       },
                     ),
