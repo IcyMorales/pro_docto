@@ -59,7 +59,7 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   late CameraController _cameraController;
   late Future<void> _initializeCameraController;
-  String? _selectedProduce;
+  String? detected_produce; // Initial value
 
   @override
   void initState() {
@@ -77,6 +77,202 @@ class _HomePageState extends State<HomePage> {
     super.dispose();
   }
 
+  void onProduceDetected(String produceName) {
+    setState(() {
+      detected_produce = produceName;
+    });
+  }
+
+  Widget _buildProduceInfo() {
+    if (detected_produce == null) {
+      return const Center(
+        child: Text('No produce detected yet'),
+      );
+    }
+
+    return StreamBuilder<QuerySnapshot>(
+      stream: FirebaseFirestore.instance
+          .collection('Produce')
+          .where('Name', isEqualTo: detected_produce)
+          .limit(1)
+          .snapshots(),
+      builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+        if (snapshot.hasError) {
+          return const Text('Something went wrong');
+        }
+
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        if (snapshot.data!.docs.isEmpty) {
+          return Center(
+            child: Text('No data found for $detected_produce'),
+          );
+        }
+
+        final produceData =
+            snapshot.data!.docs.first.data() as Map<String, dynamic>;
+        final produceId = snapshot.data!.docs.first.id;
+        print('Produce ID: $produceId'); // Debugging line
+
+        // Changed nutrients query to independent collection
+        return StreamBuilder<QuerySnapshot>(
+          stream: FirebaseFirestore.instance
+              .collection('Nutrition') // Changed from 'Nutrient' to 'Nutrition'
+              .where('Produce_ID', isEqualTo: produceId)
+              .snapshots(),
+          builder: (BuildContext context,
+              AsyncSnapshot<QuerySnapshot> nutritionSnapshot) {
+            // Changed variable name for consistency
+            if (nutritionSnapshot.hasError) {
+              return const Text('Error loading nutrition data');
+            }
+
+            if (nutritionSnapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            }
+
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Produce Information
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    ListTile(
+                      title: Text(
+                        'Details',
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      subtitle: Text(
+                        produceData['Description'] ??
+                            'No description available',
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                      child: Row(
+                        children: [
+                          const Text(
+                            'Price: ',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          Text(
+                            '₱${produceData['Price'] ?? '0.00'}',
+                            style: const TextStyle(
+                              fontSize: 16,
+                              color: Color(0xFFD67A0F),
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                  ],
+                ),
+                const Divider(),
+                // Nutrients List
+                Expanded(
+                  child: ListView.builder(
+                    itemCount: nutritionSnapshot.data!.docs.length,
+                    itemBuilder: (context, index) {
+                      final nutrientData = nutritionSnapshot.data!.docs[index]
+                          .data() as Map<String, dynamic>;
+                      return Card(
+                        margin: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 4),
+                        child: ListTile(
+                          title: Text(
+                            nutrientData['Name'] ?? 'Unknown Nutrient',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w500,
+                              color: Colors.black87,
+                            ),
+                          ),
+                          subtitle: Row(
+                            children: [
+                              Text(
+                                'Value: ${nutrientData['Value']} ',
+                                style: const TextStyle(
+                                  color: Color(0xFFD67A0F),
+                                ),
+                              ),
+                              Text(
+                                'DV: ${nutrientData['DV']}%',
+                                style: const TextStyle(
+                                  color: Color(0xFFD67A0F),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildNutrientDetail(String label, dynamic value) {
+    if (value == null || value.toString().isEmpty)
+      return const SizedBox.shrink();
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              color: Color(0xFFD67A0F),
+              fontSize: 14,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            value.toString(),
+            style: const TextStyle(
+              color: Colors.black87,
+              fontSize: 14,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCameraButton() {
+    return Container(
+      decoration: const BoxDecoration(
+        color: Color(0xFFDB7307),
+        shape: BoxShape.circle,
+      ),
+      child: IconButton(
+        icon: const Icon(Icons.camera, size: 40, color: Colors.white),
+        onPressed: () {
+          // Simulate detection - replace with actual detection logic
+          onProduceDetected(
+              'Malunggay'); // Replace with actual detected produce name
+        },
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
@@ -84,7 +280,7 @@ class _HomePageState extends State<HomePage> {
         FocusScope.of(context).unfocus();
       },
       child: Scaffold(
-        backgroundColor: Colors.black,
+        backgroundColor: const Color.fromARGB(255, 0, 0, 0),
         body: Stack(
           children: [
             FutureBuilder<void>(
@@ -97,65 +293,6 @@ class _HomePageState extends State<HomePage> {
                 }
               },
             ),
-            Positioned(
-              top: MediaQuery.of(context).size.height * 0.05,
-              right: MediaQuery.of(context).size.width * 0.1,
-              child: Container(
-                width: MediaQuery.of(context).size.width * 0.25,
-                height: MediaQuery.of(context).size.height * 0.03,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFD07712),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: DropdownButtonHideUnderline(
-                  child: StreamBuilder<QuerySnapshot>(
-                    stream: FirebaseFirestore.instance
-                        .collection('Produce')
-                        .snapshots(),
-                    builder: (context, snapshot) {
-                      if (!snapshot.hasData) {
-                        return const Center(child: CircularProgressIndicator());
-                      }
-                      // Print documents to the console
-                      for (var doc in snapshot.data!.docs) {
-                        // ignore: avoid_print
-                        print('Document ID: ${doc.id}, Data: ${doc.data()}');
-                      }
-                      var items = snapshot.data!.docs
-                          .map((doc) => doc['Name'] as String)
-                          .toList();
-                      return DropdownButton<String>(
-                        isExpanded: true,
-                        icon: const Icon(
-                          Icons.keyboard_arrow_down_rounded,
-                          color: Colors.white,
-                          size: 25,
-                        ),
-                        dropdownColor: const Color(0xFFD07712),
-                        borderRadius: BorderRadius.circular(8),
-                        items: items.map((String value) {
-                          return DropdownMenuItem<String>(
-                            value: value,
-                            child: Text(value,
-                                style: const TextStyle(color: Colors.white)),
-                          );
-                        }).toList(),
-                        onChanged: (value) {
-                          setState(() {
-                            _selectedProduce = value;
-                          });
-                        },
-                        value: _selectedProduce,
-                        hint: const Text(
-                          'Select...',
-                          style: TextStyle(color: Colors.white),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-              ),
-            ),
             Align(
               alignment: Alignment.bottomCenter,
               child: Column(
@@ -167,7 +304,7 @@ class _HomePageState extends State<HomePage> {
                         duration: const Duration(milliseconds: 300),
                         width: MediaQuery.of(context).size.width * 0.9,
                         height: appState.maxDetails
-                            ? MediaQuery.of(context).size.height * 0.6
+                            ? MediaQuery.of(context).size.height * 0.85
                             : 200,
                         decoration: BoxDecoration(
                           color: Colors.white,
@@ -192,9 +329,9 @@ class _HomePageState extends State<HomePage> {
                                   mainAxisAlignment:
                                       MainAxisAlignment.spaceBetween,
                                   children: [
-                                    const Text(
-                                      'Header',
-                                      style: TextStyle(
+                                    Text(
+                                      detected_produce ?? 'No Produce Detected',
+                                      style: const TextStyle(
                                         fontSize: 20,
                                         fontWeight: FontWeight.bold,
                                         color: Colors.black,
@@ -210,22 +347,20 @@ class _HomePageState extends State<HomePage> {
                                 ),
                               ),
                             ),
-                            collapsed: const Padding(
-                              padding: EdgeInsets.all(8.0),
-                              child: Text(
-                                'Collapsed body text',
-                                style: TextStyle(color: Colors.black87),
-                              ),
+                            collapsed: SizedBox(
+                              height: 100,
+                              child: _buildProduceInfo(),
                             ),
-                            expanded: const Padding(
-                              padding: EdgeInsets.all(8.0),
-                              child: Text(
-                                'Expanded body text',
-                                style: TextStyle(color: Colors.black87),
+                            expanded: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: SizedBox(
+                                height:
+                                    MediaQuery.of(context).size.height * 0.75,
+                                child: _buildProduceInfo(),
                               ),
                             ),
                             theme: const ExpandableThemeData(
-                              tapHeaderToExpand: false,
+                              tapHeaderToExpand: true,
                               hasIcon: false,
                             ),
                           ),
@@ -234,20 +369,7 @@ class _HomePageState extends State<HomePage> {
                     },
                   ),
                   const SizedBox(height: 20),
-                  Container(
-                    decoration: const BoxDecoration(
-                      color: Color(0xFFDB7307),
-                      shape: BoxShape.circle,
-                    ),
-                    child: IconButton(
-                      icon: const Icon(Icons.camera,
-                          size: 40, color: Colors.white),
-                      onPressed: () {
-                        // ignore: avoid_print
-                        print('CameraButton pressed ...');
-                      },
-                    ),
-                  ),
+                  _buildCameraButton(),
                   const SizedBox(height: 20),
                 ],
               ),
