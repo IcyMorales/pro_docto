@@ -3,8 +3,13 @@ import 'package:camera/camera.dart';
 
 class CameraPreviewWidget extends StatefulWidget {
   final CameraDescription camera;
+  final Function(CameraImage)? onImageAvailable;
 
-  const CameraPreviewWidget({super.key, required this.camera});
+  const CameraPreviewWidget({
+    super.key,
+    required this.camera,
+    this.onImageAvailable,
+  });
 
   @override
   State<CameraPreviewWidget> createState() => _CameraPreviewWidgetState();
@@ -19,9 +24,16 @@ class _CameraPreviewWidgetState extends State<CameraPreviewWidget> {
     super.initState();
     _cameraController = CameraController(
       widget.camera,
-      ResolutionPreset.high,
+      ResolutionPreset.medium,
+      enableAudio: false,
     );
-    _initializeCameraController = _cameraController.initialize();
+    _initializeCameraController = _cameraController.initialize().then((_) {
+      if (!mounted) return;
+
+      _cameraController.startImageStream((image) {
+        widget.onImageAvailable?.call(image);
+      });
+    });
   }
 
   @override
