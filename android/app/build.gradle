@@ -51,12 +51,7 @@ android {
     
     aaptOptions {
         noCompress 'tflite'
-        noCompress 'lite'
-    }
-
-    dependencies {
-        implementation 'org.tensorflow:tensorflow-lite:2.5.0'
-        implementation 'org.tensorflow:tensorflow-lite-gpu:2.5.0'
+        //noCompress 'lite'
     }
 }
 

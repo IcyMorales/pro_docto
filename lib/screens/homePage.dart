@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
-import 'package:tflite/tflite.dart';
+import 'package:tflite_flutter/tflite_flutter.dart';
+import 'package:image/image.dart' as img;
+import 'dart:typed_data';
+import 'package:typed_data/typed_buffers.dart';
 import '../widgets/customCamera.dart';
 import '../widgets/producePanel.dart';
 
@@ -16,57 +19,68 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   String? detectedProduce;
   bool isProcessing = false;
+  Interpreter? _interpreter;
 
   Future<void> initializeTflite() async {
     try {
       print('Starting TFLite initialization...');
 
-      // Add a small delay to ensure plugin registration
-      await Future.delayed(Duration(milliseconds: 500));
+      // Add delegate options
+      final options = InterpreterOptions()
+        ..threads = 1
+        ..useNnApiForAndroid = true; // Enable Android Neural Networks API
 
-      String? res = await Tflite.loadModel(
-          model: "assets/multitask_modelv4.tflite",
-          labels: "assets/produceList.txt",
-          numThreads: 1,
-          isAsset: true,
-          useGpuDelegate: false);
+      final modelPath = 'assets/multitask_modelv4.tflite';
+      print('Loading model from: $modelPath');
 
-      if (res == null) {
-        throw Exception('Model loading failed - null response');
+      _interpreter = await Interpreter.fromAsset(
+        modelPath,
+        options: options,
+      );
+
+      if (_interpreter == null) {
+        throw Exception('Failed to create interpreter.');
       }
-      print('Model loading result: $res');
+
+      print('Model loaded successfully');
+      print('Input tensor shape: ${_interpreter!.getInputTensor(0).shape}');
+      print('Output tensor shape: ${_interpreter!.getOutputTensor(0).shape}');
     } catch (e) {
       print('TFLite initialization error: $e');
-      rethrow; // Add this to see full stack trace
+      rethrow;
     }
   }
 
   Future<void> processImage(CameraImage image) async {
-    if (isProcessing) return;
+    if (isProcessing || _interpreter == null) return;
     isProcessing = true;
 
     try {
-      var recognitions = await Tflite.runModelOnFrame(
-        bytesList: image.planes.map((plane) => plane.bytes).toList(),
-        imageHeight: image.height,
-        imageWidth: image.width,
-        imageMean: 127.5,
-        imageStd: 127.5,
-        rotation: 90,
-        numResults: 1,
-        threshold: 0.5,
-        asynch: true,
-      );
+      // Convert image to float32 array
+      final inputShape = _interpreter!.getInputTensor(0).shape;
+      final outputShape = _interpreter!.getOutputTensor(0).shape;
 
-      print('Raw recognitions: $recognitions');
-      if (recognitions != null && recognitions.isNotEmpty) {
-        final result = recognitions[0];
-        setState(() {
-          detectedProduce = result['label'];
-          print(
-              'Detected: ${result['label']} with confidence: ${result['confidence']}');
-        });
+      // Prepare input data - normalize pixels
+      var inputArray =
+          Float32List(inputShape[1] * inputShape[2] * inputShape[3]);
+      var pixels = image.planes[0].bytes;
+
+      for (var i = 0; i < pixels.length; i++) {
+        inputArray[i] = (pixels[i] / 255.0);
       }
+
+      // Prepare output buffer
+      var outputBuffer = Float32List(outputShape.reduce((a, b) => a * b));
+
+      // Run inference
+      _interpreter!.run(inputArray.buffer, outputBuffer.buffer);
+
+      // Process results
+      print('Raw results: ${outputBuffer.toList()}');
+
+      setState(() {
+        detectedProduce = "Detected Object"; // Replace with actual detection
+      });
     } catch (e) {
       print('Detailed error: $e');
     } finally {
@@ -82,7 +96,7 @@ class _HomePageState extends State<HomePage> {
 
   @override
   void dispose() {
-    Tflite.close();
+    _interpreter?.close();
     super.dispose();
   }
 
