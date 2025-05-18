@@ -56,7 +56,8 @@ class ProducePanel extends StatelessWidget {
         if (snapshot.connectionState == ConnectionState.waiting) {
           displayText = 'Loading...';
         } else if (snapshot.hasData && snapshot.data != null) {
-          displayText = snapshot.data!['Name'] ?? 'Unknown Produce';
+          String name = snapshot.data!['Name'] ?? 'Unknown Produce';
+          displayText = name[0].toUpperCase() + name.substring(1);
         }
 
         return Align(
