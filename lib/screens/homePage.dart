@@ -16,13 +16,16 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   final GlobalKey<CameraPreviewWidgetState> _cameraKey = GlobalKey();
   String? detectedProduce;
+  double? produceAccuracy;
+  String? produceQuality; // Add this line
   bool isProcessing = false;
 
-  // Add new method for XFile
   Future<void> processXFileImage(XFile image) async {
     setState(() {
       isProcessing = true;
       detectedProduce = null;
+      produceAccuracy = null;
+      produceQuality = null; // Add this line
     });
 
     try {
@@ -30,6 +33,8 @@ class _HomePageState extends State<HomePage> {
       if (result != null) {
         setState(() {
           detectedProduce = result['vegetable'];
+          produceAccuracy = result['vegetable_confidence'];
+          produceQuality = result['freshness']; // Add this line
         });
       }
     } catch (e) {
@@ -56,6 +61,8 @@ class _HomePageState extends State<HomePage> {
             ),
             ProducePanel(
               produceName: detectedProduce ?? '',
+              produceAccuracy: produceAccuracy ?? 0.0,
+              produceQuality: produceQuality ?? 'Unknown', // Add this line
               cameraKey: _cameraKey,
             ),
           ],

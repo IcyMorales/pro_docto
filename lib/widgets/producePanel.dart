@@ -10,18 +10,21 @@ import 'customCamera.dart';
 class ProducePanel extends StatelessWidget {
   final GlobalKey<CameraPreviewWidgetState> cameraKey;
   final String? produceName;
+  final double? produceAccuracy;
+  final String? produceQuality;
 
   const ProducePanel({
     Key? key,
     required this.cameraKey,
     required this.produceName,
+    required this.produceAccuracy,
+    required this.produceQuality,
   }) : super(key: key);
 
   Future<Map<String, dynamic>?> _getProduceData() async {
     if (produceName == null) return null;
 
     try {
-      // Reference to your 'produces' collection
       final produceRef = FirebaseFirestore.instance
           .collection('Produce')
           .where('Name', isEqualTo: produceName);
@@ -108,6 +111,8 @@ class ProducePanel extends StatelessWidget {
                           height: 160, // Reduced height
                           child: ProduceInfo(
                             produceData: snapshot.data,
+                            produceAccuracy: produceAccuracy,
+                            produceQuality: produceQuality,
                           ),
                         ),
                         expanded: Padding(
@@ -118,6 +123,8 @@ class ProducePanel extends StatelessWidget {
                                 100, // Adjusted height
                             child: ProduceInfo(
                               produceData: snapshot.data,
+                              produceAccuracy: produceAccuracy,
+                              produceQuality: produceQuality,
                             ),
                           ),
                         ),
