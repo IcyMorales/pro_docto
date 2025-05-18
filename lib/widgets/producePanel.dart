@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:expandable/expandable.dart';
+import 'package:image_picker/image_picker.dart';
 import '../states/maxDetStatus.dart';
 import 'produceInfo.dart';
+import 'customCamera.dart';
 
 class ProducePanel extends StatelessWidget {
-  final String? detected_produce;
-  final Function(String) onProduceDetected;
+  final GlobalKey<CameraPreviewWidgetState> cameraKey;
 
   const ProducePanel({
-    super.key,
-    required this.detected_produce,
-    required this.onProduceDetected,
-  });
+    Key? key,
+    required this.cameraKey,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -51,7 +51,7 @@ class ProducePanel extends StatelessWidget {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              detected_produce ?? 'No Produce Detected',
+                              'No Produce Detected',
                               style: const TextStyle(
                                 fontSize: 20,
                                 fontWeight: FontWeight.bold,
@@ -70,7 +70,7 @@ class ProducePanel extends StatelessWidget {
                     ),
                     collapsed: SizedBox(
                       height: 160, // Reduced height
-                      child: ProduceInfo(detected_produce: detected_produce),
+                      child: ProduceInfo(detected_produce: null),
                     ),
                     expanded: Padding(
                       padding: const EdgeInsets.all(8.0),
@@ -78,7 +78,7 @@ class ProducePanel extends StatelessWidget {
                         height: screenHeight * 0.85 -
                             bottomPadding -
                             100, // Adjusted height
-                        child: ProduceInfo(detected_produce: detected_produce),
+                        child: ProduceInfo(detected_produce: null),
                       ),
                     ),
                     theme: const ExpandableThemeData(
@@ -108,7 +108,14 @@ class ProducePanel extends StatelessWidget {
       ),
       child: IconButton(
         icon: const Icon(Icons.camera, size: 40, color: Colors.white),
-        onPressed: () => onProduceDetected('Malunggay'),
+        onPressed: () {
+          print('Camera button pressed');
+          if (cameraKey.currentState != null) {
+            cameraKey.currentState!.takePicture();
+          } else {
+            print('Camera state is null');
+          }
+        },
       ),
     );
   }
