@@ -55,6 +55,7 @@ class _HomePageState extends State<HomePage> {
               onPictureTaken: processXFileImage,
             ),
             ProducePanel(
+              produceName: detectedProduce ?? '',
               cameraKey: _cameraKey,
             ),
           ],
