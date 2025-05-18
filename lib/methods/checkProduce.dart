@@ -2,9 +2,6 @@ import 'dart:convert';
 import 'package:camera/camera.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'dart:io';
-import 'package:mime/mime.dart';
-import 'package:http_parser/http_parser.dart';
 
 class ProduceChecker {
   static Future<Map<String, dynamic>?> checkProduce(XFile image) async {
