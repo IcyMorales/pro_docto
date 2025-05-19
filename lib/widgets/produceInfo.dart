@@ -53,6 +53,18 @@ class ProduceInfo extends StatelessWidget {
     }
   }
 
+  // Add this method to calculate scaled value
+  double _getScaledValue(double value, String? freshness) {
+    switch (freshness?.toLowerCase()) {
+      case 'fresh':
+        return value * 1.0; // 100%
+      case 'medium':
+        return value * 0.6; // 60%
+      default:
+        return 0.0; // Unknown/Rotten
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     if (produceData == null) {
@@ -138,7 +150,8 @@ class ProduceInfo extends StatelessWidget {
                             width: MediaQuery.of(context).size.width * 0.8,
                             padding: const EdgeInsets.all(12.0),
                             decoration: BoxDecoration(
-                              color: Colors.white,
+                              color: Colors.white
+                                  .withOpacity(0.7), // Added transparency
                               border: Border.all(
                                 color: const Color(0xFFDB7307).withOpacity(0.3),
                                 width: 1.5,
@@ -199,7 +212,7 @@ class ProduceInfo extends StatelessWidget {
                                             style: TextStyle(fontSize: 12),
                                           ),
                                           Text(
-                                            '${nutrient['Value'] ?? '0'} mg', // Changed to use fixed 'mg' unit
+                                            '${nutrient['Value'] != null ? _getScaledValue(double.parse(nutrient['Value'].toString()), produceQuality).toStringAsFixed(1) : '0'} mg',
                                             style: const TextStyle(
                                               fontSize: 12,
                                               color: Colors.grey,
