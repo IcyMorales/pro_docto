@@ -135,10 +135,14 @@ class ProduceInfo extends StatelessWidget {
                   runSpacing: 8.0,
                   children: snapshot.data!
                       .map((nutrient) => Container(
-                            width: 150,
+                            width: MediaQuery.of(context).size.width * 0.8,
                             padding: const EdgeInsets.all(12.0),
                             decoration: BoxDecoration(
                               color: Colors.white,
+                              border: Border.all(
+                                color: const Color(0xFFDB7307).withOpacity(0.3),
+                                width: 1.5,
+                              ),
                               borderRadius: BorderRadius.circular(8.0),
                               boxShadow: [
                                 BoxShadow(
@@ -162,35 +166,46 @@ class ProduceInfo extends StatelessWidget {
                                 const SizedBox(height: 4),
                                 Row(
                                   children: [
-                                    const Text(
-                                      'DV: ',
-                                      style: TextStyle(
-                                        fontSize: 12,
+                                    Expanded(
+                                      child: Row(
+                                        children: [
+                                          const Text(
+                                            'DV: ',
+                                            style: TextStyle(fontSize: 12),
+                                          ),
+                                          Text(
+                                            '${nutrient['DV'] ?? 'N/A'}%',
+                                            style: const TextStyle(
+                                              fontSize: 12,
+                                              color: Colors.grey,
+                                            ),
+                                          ),
+                                        ],
                                       ),
                                     ),
-                                    Text(
-                                      '${nutrient['DV'] ?? 'N/A'}%',
-                                      style: const TextStyle(
-                                        fontSize: 12,
-                                        color: Colors.grey,
-                                      ),
+                                    Container(
+                                      width: 2,
+                                      height: 12,
+                                      color: const Color(
+                                          0xFFDB7307), // Orange separator
+                                      margin: const EdgeInsets.symmetric(
+                                          horizontal: 8),
                                     ),
-                                  ],
-                                ),
-                                const SizedBox(height: 4),
-                                Row(
-                                  children: [
-                                    const Text(
-                                      'Value: ',
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                      ),
-                                    ),
-                                    Text(
-                                      '${nutrient['Amount'] ?? '0'} ${nutrient['Unit'] ?? ''}',
-                                      style: const TextStyle(
-                                        fontSize: 12,
-                                        color: Colors.grey,
+                                    Expanded(
+                                      child: Row(
+                                        children: [
+                                          const Text(
+                                            'Value: ',
+                                            style: TextStyle(fontSize: 12),
+                                          ),
+                                          Text(
+                                            '${nutrient['Value'] ?? '0'} mg', // Changed to use fixed 'mg' unit
+                                            style: const TextStyle(
+                                              fontSize: 12,
+                                              color: Colors.grey,
+                                            ),
+                                          ),
+                                        ],
                                       ),
                                     ),
                                   ],
@@ -232,10 +247,14 @@ class ProduceInfo extends StatelessWidget {
                   ),
                 ),
                 Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 16.0),
+                  width: MediaQuery.of(context).size.width * 0.8,
                   padding: const EdgeInsets.all(12.0),
                   decoration: BoxDecoration(
                     color: Colors.white,
+                    border: Border.all(
+                      color: const Color(0xFFDB7307).withOpacity(0.3),
+                      width: 1.5,
+                    ),
                     borderRadius: BorderRadius.circular(8.0),
                     boxShadow: [
                       BoxShadow(
@@ -249,6 +268,7 @@ class ProduceInfo extends StatelessWidget {
                   child: Text(
                     snapshot.data!['Content'] ?? '',
                     style: const TextStyle(fontSize: 14),
+                    textAlign: TextAlign.justify, // Add this line
                   ),
                 ),
               ],
