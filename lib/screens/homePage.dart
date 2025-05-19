@@ -48,24 +48,38 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
         backgroundColor: Colors.black,
-        body: Stack(
-          children: [
-            CameraPreviewWidget(
-              key: _cameraKey,
-              camera: widget.camera,
-              onPictureTaken: processXFileImage,
-            ),
-            ProducePanel(
-              produceName: detectedProduce ?? '',
-              produceAccuracy: produceAccuracy ?? 0.0,
-              produceQuality: produceQuality ?? 'Unknown', // Add this line
-              cameraKey: _cameraKey,
-            ),
-          ],
+        body: SizedBox.expand(
+          // Makes the Stack take full screen
+          child: Stack(
+            fit: StackFit.expand, // Makes children expand to fill the Stack
+            children: [
+              SizedBox.expand(
+                // Makes the camera preview take full screen
+                child: CameraPreviewWidget(
+                  key: _cameraKey,
+                  camera: widget.camera,
+                  onPictureTaken: processXFileImage,
+                ),
+              ),
+              Positioned(
+                // Position the ProducePanel at the bottom
+                left: 0,
+                right: 0,
+                bottom: 0,
+                child: ProducePanel(
+                  produceName: detectedProduce ?? '',
+                  produceAccuracy: produceAccuracy ?? 0.0,
+                  produceQuality: produceQuality ?? 'Unknown',
+                  cameraKey: _cameraKey,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

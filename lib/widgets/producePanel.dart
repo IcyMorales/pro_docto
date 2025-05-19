@@ -70,7 +70,8 @@ class ProducePanel extends StatelessWidget {
                     duration: const Duration(milliseconds: 300),
                     width: MediaQuery.of(context).size.width * 0.9,
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: Colors.white
+                          .withOpacity(0.9), // Changed to add transparency
                       borderRadius:
                           const BorderRadius.vertical(top: Radius.circular(10)),
                       border: Border.all(
