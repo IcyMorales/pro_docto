@@ -85,7 +85,7 @@ class ProduceInfo extends StatelessWidget {
             ),
           ),
           subtitle: Text(
-            '${(produceAccuracy ?? 0.0 * 100).toStringAsFixed(1)}%',
+            '${((produceAccuracy ?? 0.0) * 100).toStringAsFixed(1)}%',
             style: const TextStyle(fontSize: 14),
           ),
         ),
@@ -113,6 +113,7 @@ class ProduceInfo extends StatelessWidget {
           subtitle: Text(
             produceData!['Description'] ?? '',
             style: const TextStyle(fontSize: 14),
+            textAlign: TextAlign.justify, // Add this line
           ),
         ),
         FutureBuilder<List<Map<String, dynamic>>>(
