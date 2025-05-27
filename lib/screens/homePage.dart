@@ -3,6 +3,7 @@ import 'package:camera/camera.dart';
 import '../widgets/customCamera.dart';
 import '../widgets/producePanel.dart';
 import '../methods/checkProduce.dart';
+import 'package:cloud_firestore/cloud_firestore.dart'; // Import Cloud Firestore
 
 class HomePage extends StatefulWidget {
   final CameraDescription camera;
@@ -19,6 +20,8 @@ class _HomePageState extends State<HomePage> {
   double? produceAccuracy;
   String? produceQuality; // Add this line
   bool isProcessing = false;
+  List<String> produces = []; // Add this line to store produce names
+  String? selectedProduce;
 
   Future<void> processXFileImage(XFile image) async {
     setState(() {
@@ -32,7 +35,7 @@ class _HomePageState extends State<HomePage> {
       final result = await ProduceChecker.checkProduce(image);
       if (result != null) {
         setState(() {
-          detectedProduce = result['vegetable'];
+          detectedProduce = selectedProduce;
           produceAccuracy = result['vegetable_confidence'];
           produceQuality = result['freshness']; // Add this line
         });
@@ -47,22 +50,95 @@ class _HomePageState extends State<HomePage> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    _fetchProduces(); // Fetch produces when widget initializes
+  }
+
+  Future<void> _fetchProduces() async {
+    try {
+      final querySnapshot = await FirebaseFirestore.instance
+          .collection('Produce')
+          .orderBy('Name')
+          .get();
+
+      setState(() {
+        produces =
+            querySnapshot.docs.map((doc) => doc['Name'] as String).toList();
+      });
+    } catch (e) {
+      print('Error fetching produces: $e');
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
         backgroundColor: Colors.black,
         body: SizedBox.expand(
-          // Makes the Stack take full screen
           child: Stack(
-            fit: StackFit.expand, // Makes children expand to fill the Stack
+            fit: StackFit.expand,
             children: [
               SizedBox.expand(
-                // Makes the camera preview take full screen
                 child: CameraPreviewWidget(
                   key: _cameraKey,
                   camera: widget.camera,
                   onPictureTaken: processXFileImage,
+                ),
+              ),
+              // Add ProduceSelector at top right
+              Positioned(
+                top: MediaQuery.of(context).padding.top + 16,
+                right: 16,
+                child: Container(
+                  width: MediaQuery.of(context).size.width * 0.4,
+                  padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.9),
+                    borderRadius: BorderRadius.circular(8.0),
+                    border: Border.all(
+                      color: const Color(0xFFDB7307).withOpacity(0.3),
+                      width: 1.5,
+                    ),
+                  ),
+                  child: DropdownButtonHideUnderline(
+                    child: DropdownButton<String>(
+                      value: selectedProduce,
+                      hint: const Text(
+                        'Select Produce',
+                        style: TextStyle(color: Colors.black54),
+                      ),
+                      isExpanded: true,
+                      icon: const Icon(
+                        Icons.arrow_drop_down,
+                        color: Color(0xFFDB7307),
+                      ),
+                      items: produces.map((String name) {
+                        return DropdownMenuItem<String>(
+                          value: name,
+                          child: Text(
+                            name[0].toUpperCase() + name.substring(1),
+                            style: const TextStyle(
+                              fontSize: 14,
+                              color: Colors.black87,
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                      onChanged: (String? newValue) {
+                        if (newValue != null) {
+                          setState(() {
+                            selectedProduce = newValue;
+                            detectedProduce = newValue;
+                            produceAccuracy = null;
+                            produceQuality = 'Unknown';
+                          });
+                        }
+                      },
+                    ),
+                  ),
                 ),
               ),
               Positioned(

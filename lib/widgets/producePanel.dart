@@ -51,12 +51,12 @@ class ProducePanel extends StatelessWidget {
     return FutureBuilder<Map<String, dynamic>?>(
       future: _getProduceData(),
       builder: (context, snapshot) {
-        String displayText = 'No Produce Detected';
+        String displayText = 'No Produce Selected';
         if (snapshot.connectionState == ConnectionState.waiting) {
           displayText = 'Loading...';
         } else if (snapshot.hasData && snapshot.data != null) {
-          String name = snapshot.data!['Name'] ?? 'Unknown Produce';
-          displayText = name[0].toUpperCase() + name.substring(1);
+          //String name = snapshot.data!['Name'] ?? 'Unknown Produce';
+          displayText = "Details";
         }
 
         return Align(
