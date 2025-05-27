@@ -9,14 +9,14 @@ import 'customCamera.dart';
 class ProducePanel extends StatelessWidget {
   final GlobalKey<CameraPreviewWidgetState> cameraKey;
   final String? produceName;
-  final double? produceAccuracy;
+  final double? freshnessAccuracy;
   final String? produceQuality;
 
   const ProducePanel({
     Key? key,
     required this.cameraKey,
     required this.produceName,
-    required this.produceAccuracy,
+    required this.freshnessAccuracy,
     required this.produceQuality,
   }) : super(key: key);
 
@@ -112,7 +112,7 @@ class ProducePanel extends StatelessWidget {
                           height: 160, // Reduced height
                           child: ProduceInfo(
                             produceData: snapshot.data,
-                            produceAccuracy: produceAccuracy,
+                            freshnessAccuracy: freshnessAccuracy,
                             produceQuality: produceQuality,
                           ),
                         ),
@@ -124,7 +124,7 @@ class ProducePanel extends StatelessWidget {
                                 100, // Adjusted height
                             child: ProduceInfo(
                               produceData: snapshot.data,
-                              produceAccuracy: produceAccuracy,
+                              freshnessAccuracy: freshnessAccuracy,
                               produceQuality: produceQuality,
                             ),
                           ),

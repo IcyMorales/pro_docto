@@ -4,13 +4,13 @@ import 'dart:math';
 
 class ProduceInfo extends StatelessWidget {
   final Map<String, dynamic>? produceData;
-  final double? produceAccuracy;
+  final double? freshnessAccuracy;
   final String? produceQuality;
 
   const ProduceInfo({
     Key? key,
     this.produceData,
-    this.produceAccuracy,
+    this.freshnessAccuracy,
     this.produceQuality,
   }) : super(key: key);
 
@@ -78,19 +78,6 @@ class ProduceInfo extends StatelessWidget {
       children: [
         ListTile(
           title: const Text(
-            'Identification Prediction:',
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 16,
-            ),
-          ),
-          subtitle: Text(
-            '${((produceAccuracy ?? 0.0) * 100).toStringAsFixed(1)}%',
-            style: const TextStyle(fontSize: 14),
-          ),
-        ),
-        ListTile(
-          title: const Text(
             'Freshness:',
             style: TextStyle(
               fontWeight: FontWeight.bold,
@@ -99,6 +86,19 @@ class ProduceInfo extends StatelessWidget {
           ),
           subtitle: Text(
             produceQuality ?? 'Unknown',
+            style: const TextStyle(fontSize: 14),
+          ),
+        ),
+        ListTile(
+          title: const Text(
+            'Freshness Confidence:',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 16,
+            ),
+          ),
+          subtitle: Text(
+            '${((freshnessAccuracy ?? 0.0) * 100).toStringAsFixed(1)}%',
             style: const TextStyle(fontSize: 14),
           ),
         ),
@@ -188,7 +188,7 @@ class ProduceInfo extends StatelessWidget {
                                             style: TextStyle(fontSize: 12),
                                           ),
                                           Text(
-                                            '${nutrient['DV'] ?? 'N/A'}%',
+                                            '${nutrient['DV'] / 10 ?? 'N/A'}% / g',
                                             style: const TextStyle(
                                               fontSize: 12,
                                               color: Colors.grey,
@@ -213,7 +213,7 @@ class ProduceInfo extends StatelessWidget {
                                             style: TextStyle(fontSize: 12),
                                           ),
                                           Text(
-                                            '${nutrient['Value'] != null ? _getScaledValue(double.parse(nutrient['Value'].toString()), produceQuality).toStringAsFixed(1) : '0'} mg',
+                                            '${nutrient['Value'] != null ? _getScaledValue(double.parse(nutrient['Value'].toString()), produceQuality).toStringAsFixed(1) : '0'} / g',
                                             style: const TextStyle(
                                               fontSize: 12,
                                               color: Colors.grey,

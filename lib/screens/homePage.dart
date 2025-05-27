@@ -17,7 +17,7 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   final GlobalKey<CameraPreviewWidgetState> _cameraKey = GlobalKey();
   String? detectedProduce;
-  double? produceAccuracy;
+  double? freshnessAccuracy;
   String? produceQuality; // Add this line
   bool isProcessing = false;
   List<String> produces = []; // Add this line to store produce names
@@ -27,7 +27,7 @@ class _HomePageState extends State<HomePage> {
     setState(() {
       isProcessing = true;
       detectedProduce = null;
-      produceAccuracy = null;
+      freshnessAccuracy = null;
       produceQuality = null; // Add this line
     });
 
@@ -36,7 +36,7 @@ class _HomePageState extends State<HomePage> {
       if (result != null) {
         setState(() {
           detectedProduce = selectedProduce;
-          produceAccuracy = result['vegetable_confidence'];
+          freshnessAccuracy = result['vegetable_confidence'];
           produceQuality = result['freshness']; // Add this line
         });
       }
@@ -90,10 +90,11 @@ class _HomePageState extends State<HomePage> {
               ),
               // Add ProduceSelector at top right
               Positioned(
-                top: MediaQuery.of(context).padding.top + 16,
+                top: MediaQuery.of(context).padding.top + 5,
                 right: 16,
                 child: Container(
                   width: MediaQuery.of(context).size.width * 0.4,
+                  height: 35,
                   padding: const EdgeInsets.symmetric(horizontal: 12.0),
                   decoration: BoxDecoration(
                     color: Colors.white.withOpacity(0.9),
@@ -107,10 +108,15 @@ class _HomePageState extends State<HomePage> {
                     child: DropdownButton<String>(
                       value: selectedProduce,
                       hint: const Text(
-                        'Select Produce',
-                        style: TextStyle(color: Colors.black54),
+                        'Select',
+                        style: TextStyle(
+                          color: Colors.black54,
+                          fontSize: 14,
+                        ),
+                        textAlign: TextAlign.center, // Add this
                       ),
                       isExpanded: true,
+                      alignment: AlignmentDirectional.center, // Add this
                       icon: const Icon(
                         Icons.arrow_drop_down,
                         color: Color(0xFFDB7307),
@@ -118,12 +124,14 @@ class _HomePageState extends State<HomePage> {
                       items: produces.map((String name) {
                         return DropdownMenuItem<String>(
                           value: name,
+                          alignment: AlignmentDirectional.center, // Add this
                           child: Text(
                             name[0].toUpperCase() + name.substring(1),
                             style: const TextStyle(
                               fontSize: 14,
                               color: Colors.black87,
                             ),
+                            textAlign: TextAlign.center, // Add this
                           ),
                         );
                       }).toList(),
@@ -132,7 +140,7 @@ class _HomePageState extends State<HomePage> {
                           setState(() {
                             selectedProduce = newValue;
                             detectedProduce = newValue;
-                            produceAccuracy = null;
+                            freshnessAccuracy = null;
                             produceQuality = 'Unknown';
                           });
                         }
@@ -148,7 +156,7 @@ class _HomePageState extends State<HomePage> {
                 bottom: 0,
                 child: ProducePanel(
                   produceName: detectedProduce ?? '',
-                  produceAccuracy: produceAccuracy ?? 0.0,
+                  freshnessAccuracy: freshnessAccuracy ?? 0.0,
                   produceQuality: produceQuality ?? 'Unknown',
                   cameraKey: _cameraKey,
                 ),
